@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ansuz</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 320px;
+      background: #120800;
+      color: #e8d5b0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+    }
+
+    .view { display: none; padding: 16px; }
+    .view.active { display: block; }
+
+    /* Loading */
+    #view-loading {
+      padding: 40px;
+      text-align: center;
+    }
+
+    /* Header */
+    h1 {
+      font-family: Georgia, serif;
+      color: #c8821a;
+      font-size: 18px;
+      font-style: italic;
+    }
+    .subtitle {
+      font-size: 11px;
+      color: #7a5c30;
+      margin-top: 2px;
+      margin-bottom: 16px;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .header-bar h1 a {
+      text-decoration: none;
+      color: inherit;
+    }
+    .username { font-size: 11px; color: #c8821a; }
+    .logout {
+      font-size: 10px; color: #7a5c30;
+      background: none; border: none;
+      cursor: pointer; text-decoration: underline;
+    }
+    .logout:hover { color: #e8d5b0; }
+
+    /* Fields */
+    .field { margin-bottom: 10px; }
+    label {
+      display: block;
+      font-size: 10px; color: #7a5c30;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      margin-bottom: 3px;
+    }
+    input[type="email"],
+    input[type="password"],
+    input[type="text"],
+    input[type="url"],
+    textarea {
+      width: 100%;
+      padding: 7px 9px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #3d2510;
+      border-radius: 5px;
+      color: #e8d5b0;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #c8821a;
+    }
+    textarea { resize: vertical; height: 60px; }
+
+    /* Stars */
+    .stars { display: flex; align-items: center; gap: 2px; margin-top: 2px; }
+    .star-slot {
+      position: relative; display: inline-block;
+      font-size: 20px; line-height: 1; cursor: pointer;
+    }
+    .half-zone {
+      position: absolute; top: 0; bottom: 0; width: 50%;
+      background: transparent; border: none; padding: 0; cursor: pointer; z-index: 2;
+    }
+    .half-left  { left: 0; }
+    .half-right { right: 0; }
+    .sp-bg { display: block; color: #3d2510; user-select: none; }
+    .sp-fg {
+      position: absolute; top: 0; left: 0;
+      color: #c8821a; overflow: hidden; white-space: nowrap;
+      pointer-events: none; user-select: none;
+    }
+    .star-label { font-size: 11px; color: #7a5c30; margin-left: 6px; }
+
+    /* Buttons */
+    .btn {
+      width: 100%; padding: 9px;
+      background: #c8821a; color: #0d0600;
+      font-weight: 600; font-size: 13px;
+      border: none; border-radius: 6px;
+      cursor: pointer; margin-top: 6px;
+      transition: background 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn:hover { background: #e09020; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid #3d2510;
+      color: #7a5c30; font-weight: 400;
+    }
+    .btn-ghost:hover { border-color: #7a5c30; color: #e8d5b0; background: transparent; }
+
+    /* Error */
+    .error {
+      font-size: 11px; color: #e05050;
+      margin-top: 6px; padding: 6px 8px;
+      background: rgba(224,80,80,0.1);
+      border-radius: 4px;
+      border: 1px solid rgba(224,80,80,0.2);
+    }
+
+    /* Success */
+    .success-glyph {
+      font-family: Georgia, serif;
+      font-size: 36px; text-align: center;
+      color: #c8821a; opacity: 0.6;
+      margin-bottom: 8px;
+    }
+    .success-text {
+      font-family: Georgia, serif;
+      font-style: italic; color: #e8d5b0;
+      text-align: center; margin-bottom: 16px;
+    }
+
+    /* Couvertures */
+    .covers-section { margin-bottom: 10px; }
+    .covers-loading { font-size: 11px; color: #7a5c30; margin-bottom: 4px; }
+    .covers-track {
+      display: flex; gap: 6px;
+      overflow-x: auto; padding: 2px 0 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #3d2510 transparent;
+    }
+    .covers-track::-webkit-scrollbar { height: 3px; }
+    .covers-track::-webkit-scrollbar-thumb { background: #3d2510; border-radius: 2px; }
+    .cover-item {
+      flex-shrink: 0; width: 52px; height: 72px;
+      border-radius: 3px; overflow: hidden;
+      border: 2px solid transparent;
+      cursor: pointer; background: #1e0e04;
+      padding: 0; transition: border-color 0.15s, transform 0.15s;
+    }
+    .cover-item:hover { transform: translateY(-2px); border-color: #c8821a; }
+    .cover-item.selected { border-color: #e09020; }
+    .cover-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    /* CDN badge */
+    .cdn-badge {
+      font-size: 10px; color: #7a5c30;
+      background: rgba(200,130,26,0.08);
+      border: 1px solid rgba(200,130,26,0.2);
+      border-radius: 4px; padding: 4px 8px;
+      margin-bottom: 8px;
+    }
+
+    /* Type pills */
+    .type-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+    .type-pill {
+      padding: 3px 9px; border-radius: 20px; font-size: 11px;
+      border: 1px solid #3d2510; background: transparent;
+      color: #7a5c30; cursor: pointer; transition: all 0.15s;
+    }
+    .type-pill:hover { border-color: #c8821a; color: #c8821a; }
+    .type-pill.active { background: #c8821a; border-color: #c8821a; color: #0d0600; font-weight: 600; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(13,6,0,0.3);
+      border-top-color: #0d0600;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner-amber {
+      width: 20px; height: 20px;
+      border-color: #3d2510;
+      border-top-color: #c8821a;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="view-loading" class="view active">
+    <span class="spinner spinner-amber"></span>
+  </div>
+
+  <div id="view-login" class="view">
+    <h1>Ansuz</h1>
+    <p class="subtitle">Connecte-toi pour partager une lecture</p>
+    <form id="login-form">
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" required autocomplete="current-password" />
+      </div>
+      <div id="login-error" class="error" style="display:none"></div>
+      <button type="submit" class="btn" id="login-btn">Se connecter</button>
+    </form>
+  </div>
+
+  <div id="view-form" class="view">
+    <div class="header-bar">
+      <h1><a href="https://ansuz.media/" target="_blank">Ansuz</a></h1>
+      <div>
+        <span class="username" id="username-display"></span>
+        <button class="logout" id="logout-btn">Déconnecter</button>
+      </div>
+    </div>
+    <form id="post-form">
+      <div class="field">
+        <label>Type</label>
+        <div class="type-pills" id="type-pills">
+          <button type="button" class="type-pill active" data-type="book">Livre</button>
+          <button type="button" class="type-pill" data-type="manga">Manga</button>
+          <button type="button" class="type-pill" data-type="film">Film</button>
+          <button type="button" class="type-pill" data-type="series">Série</button>
+          <button type="button" class="type-pill" data-type="music">Musique</button>
+          <button type="button" class="type-pill" data-type="game">Jeu</button>
+        </div>
+        <input type="hidden" id="type" value="book" />
+      </div>
+
+      <div class="field">
+        <label for="title">Titre *</label>
+        <input type="text" id="title" required placeholder="Dune, Vinland Saga…" />
+      </div>
+
+      <div class="field">
+        <label for="author" id="author-label">Auteur</label>
+        <input type="text" id="author" placeholder="" />
+      </div>
+
+      <div id="cdn-badge" class="cdn-badge" style="display:none"></div>
+
+      <div class="covers-section" id="covers-section" style="display:none">
+        <label>Couverture</label>
+        <div class="covers-loading" id="covers-loading" style="display:none">Recherche…</div>
+        <div class="covers-track" id="covers-track"></div>
+        <input type="hidden" id="cover_url" value="" />
+      </div>
+
+      <div class="field">
+        <label for="link">Lien</label>
+        <input type="url" id="link" />
+      </div>
+      <div class="field">
+        <label for="description">Recommandation</label>
+        <textarea id="description" placeholder="Pourquoi tu le recommandes…"></textarea>
+      </div>
+      <div class="field">
+        <label>Note</label>
+        <div class="stars" id="stars">
+          <div class="star-slot" data-star="1">
+            <button type="button" class="half-zone half-left" data-v="0.5"></button>
+            <button type="button" class="half-zone half-right" data-v="1"></button>
+            <span class="sp-bg">★</span><span class="sp-fg" id="sf-1">★</span>
+          </div>
+          <div class="star-slot" data-star="2">
+            <button type="button" class="half-zone half-left" data-v="1.5"></button>
+            <button type="button" class="half-zone half-right" data-v="2"></button>
+            <span class="sp-bg">★</span><span class="sp-fg" id="sf-2">★</span>
+          </div>
+          <div class="star-slot" data-star="3">
+            <button type="button" class="half-zone half-left" data-v="2.5"></button>
+            <button type="button" class="half-zone half-right" data-v="3"></button>
+            <span class="sp-bg">★</span><span class="sp-fg" id="sf-3">★</span>
+          </div>
+          <div class="star-slot" data-star="4">
+            <button type="button" class="half-zone half-left" data-v="3.5"></button>
+            <button type="button" class="half-zone half-right" data-v="4"></button>
+            <span class="sp-bg">★</span><span class="sp-fg" id="sf-4">★</span>
+          </div>
+          <div class="star-slot" data-star="5">
+            <button type="button" class="half-zone half-left" data-v="4.5"></button>
+            <button type="button" class="half-zone half-right" data-v="5"></button>
+            <span class="sp-bg">★</span><span class="sp-fg" id="sf-5">★</span>
+          </div>
+          <span class="star-label" id="star-label"></span>
+        </div>
+        <input type="hidden" id="rating" value="" />
+      </div>
+      <div id="post-error" class="error" style="display:none"></div>
+      <button type="submit" class="btn" id="post-btn">Publier</button>
+    </form>
+  </div>
+
+  <div id="view-success" class="view">
+    <div class="success-glyph">❧</div>
+    <p class="success-text">Partagé avec tes amis !</p>
+    <button class="btn btn-ghost" id="add-another-btn">Ajouter un autre</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ansuz — Générer les icônes</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #1a1a1a; color: #eee; }
+    h1 { margin-bottom: 1rem; }
+    .icons { display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 2rem; align-items: flex-end; }
+    .icon-block { text-align: center; }
+    canvas { display: block; border-radius: 6px; margin-bottom: 0.5rem; }
+    button {
+      display: block; width: 100%;
+      padding: 6px 12px; background: #c8821a; color: #0d0600;
+      border: none; border-radius: 4px; font-weight: 600;
+      cursor: pointer; font-size: 12px;
+    }
+    button:hover { background: #e09020; }
+    p { font-size: 13px; color: #888; }
+  </style>
+</head>
+<body>
+  <h1>Ansuz — Icônes extension</h1>
+  <p>Cliquez sur chaque bouton pour télécharger le PNG correspondant.</p>
+  <div class="icons" id="icons"></div>
+
+  <script>
+    const SIZES = [16, 48, 128]
+
+    function drawIcon(size) {
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = size
+      const ctx = canvas.getContext('2d')
+      const r = size * 0.17
+
+      // Fond arrondi
+      ctx.beginPath()
+      ctx.moveTo(r, 0)
+      ctx.lineTo(size - r, 0)
+      ctx.quadraticCurveTo(size, 0, size, r)
+      ctx.lineTo(size, size - r)
+      ctx.quadraticCurveTo(size, size, size - r, size)
+      ctx.lineTo(r, size)
+      ctx.quadraticCurveTo(0, size, 0, size - r)
+      ctx.lineTo(0, r)
+      ctx.quadraticCurveTo(0, 0, r, 0)
+      ctx.closePath()
+
+      const grad = ctx.createRadialGradient(size * 0.5, size * 0.35, 0, size * 0.5, size * 0.5, size * 0.6)
+      grad.addColorStop(0, '#2a1004')
+      grad.addColorStop(1, '#120800')
+      ctx.fillStyle = grad
+      ctx.fill()
+
+      // Rune Ansuz — dessinée manuellement
+      const s = size
+      ctx.strokeStyle = '#c8821a'
+      ctx.lineCap = 'round'
+      ctx.lineWidth = s * 0.09
+
+      const hx  = s * 0.36   // hampe décalée à gauche
+      const top = s * 0.125
+      const bot = s * 0.875
+      const dx  = s * 0.281  // même delta pour les deux branches
+      const dy  = s * 0.188
+
+      // Hampe verticale
+      ctx.beginPath()
+      ctx.moveTo(hx, top)
+      ctx.lineTo(hx, bot)
+      ctx.stroke()
+
+      // Branche haute — part du sommet de la hampe
+      ctx.beginPath()
+      ctx.moveTo(hx, top)
+      ctx.lineTo(hx + dx, top + dy)
+      ctx.stroke()
+
+      // Branche basse — même angle, même longueur
+      ctx.beginPath()
+      ctx.moveTo(hx, s * 0.344)
+      ctx.lineTo(hx + dx, s * 0.344 + dy)
+      ctx.stroke()
+
+      return canvas
+    }
+
+    const container = document.getElementById('icons')
+
+    SIZES.forEach(size => {
+      const canvas = drawIcon(size)
+      const block = document.createElement('div')
+      block.className = 'icon-block'
+
+      const label = document.createElement('p')
+      label.textContent = `${size}×${size}`
+
+      const btn = document.createElement('button')
+      btn.textContent = `Télécharger`
+      btn.addEventListener('click', () => {
+        const a = document.createElement('a')
+        a.download = `icon${size}.png`
+        a.href = canvas.toDataURL('image/png')
+        a.click()
+      })
+
+      block.appendChild(canvas)
+      block.appendChild(label)
+      block.appendChild(btn)
+      container.appendChild(block)
+    })
+  </script>
+</body>
+</html>

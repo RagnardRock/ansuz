@@ -1,0 +1,37 @@
+erDiagram
+    USERS ||--o{ POSTS : "rédige"
+    USERS ||--o{ UPVOTES : "donne"
+    POSTS ||--o{ UPVOTES : "reçoit"
+    
+    USERS {
+        uuid id PK
+        string username
+        string email
+        string password_hash
+        timestamp created_at
+            }
+
+    POSTS {
+        uuid id PK
+        uuid user_id FK
+        string title
+        text description
+        text link
+        text cover_url
+        string cover_color
+        numeric rating
+        timestamp created_at
+        timestamp updated_at
+            }
+
+    UPVOTES {
+        uuid user_id FK
+        uuid post_id FK
+        timestamp created_at
+            }
+
+    LOGIN_ATTEMPTS {
+        bigint id PK
+        text ip
+        timestamp attempted_at
+            }
