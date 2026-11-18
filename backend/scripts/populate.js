@@ -13,7 +13,6 @@
 import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { neon } from '@neondatabase/serverless'
 import { nettoyerTexte } from '../lib/texte.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -381,7 +380,8 @@ const FETCHERS = {
 }
 
 async function main() {
-  sql = neon(process.env.DATABASE_URL)
+  // Import après config() : lib/db.js lit DATABASE_URL au chargement.
+  sql = (await import('../lib/db.js')).default
   console.log(`=== Populate Ansuz DB — count=${COUNT}${NO_ADULT ? ' · no-adult' : ''}${DRY_RUN ? ' · dry-run' : ''} ===\n`)
 
   const existingKeys = await loadExistingKeys()

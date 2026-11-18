@@ -1,15 +1,33 @@
 /**
- * Connexion à Neon via le driver serverless.
+ * Connexion PostgreSQL via node-postgres (pg), avec un pool de connexions gardées ouvertes.
  *
- * @neondatabase/serverless utilise WebSockets au lieu de TCP classique,
- * ce qui fonctionne dans les environnements serverless (Vercel Functions)
- * où les connexions TCP persistantes ne sont pas possibles.
+ * Le serveur tourne en continu sur le VPS (PM2) : un pool évite d'ouvrir une connexion
+ * à chaque requête, contrairement à l'ancien driver HTTP de Neon prévu pour Vercel.
  *
- * DATABASE_URL est définie dans les variables d'environnement Vercel.
- * Format : postgresql://user:password@host/dbname?sslmode=require
+ * DATABASE_URL (dans backend/.env) :
+ *   - Postgres sur le VPS : postgresql://ansuz:motdepasse@localhost:5432/ansuz
+ *   - Neon (fonctionne aussi) : postgresql://user:password@host/dbname?sslmode=require
+ *
+ * Usage inchangé : const rows = await sql`SELECT … WHERE id = ${id}`
+ * Chaque ${valeur} devient un paramètre $1, $2… (jamais collé dans le texte SQL).
  */
-import { neon } from '@neondatabase/serverless'
+import pg from 'pg'
 
-const sql = neon(process.env.DATABASE_URL)
+export const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+  max: Number(process.env.DB_POOL_MAX) || 10,
+  idleTimeoutMillis: 30_000,
+})
 
-export default sql
+pool.on('error', (err) => console.error('Erreur PostgreSQL (connexion inactive) :', err.message))
+
+export function construireRequete(strings, values) {
+  let text = strings[0]
+  for (let i = 0; i < values.length; i++) text += `$${i + 1}${strings[i + 1]}`
+  return { text, values }
+}
+
+export default async function sql(strings, ...values) {
+  const { rows } = await pool.query(construireRequete(strings, values))
+  return rows
+}
