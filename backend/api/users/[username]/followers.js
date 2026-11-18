@@ -11,7 +11,7 @@ export default withCors(async (req, res) => {
   const [user] = await sql`SELECT id FROM users WHERE username = ${username}`
   if (!user) return res.status(404).json({ error: 'Utilisateur introuvable' })
 
-  const viewerId = me?.userId ?? 0
+  const viewerId = me?.userId ?? null
 
   const rows = await sql`
     SELECT
