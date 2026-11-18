@@ -1,4 +1,5 @@
 import { withCors } from '../../lib/cors.js'
+import { nettoyerTexte } from '../../lib/texte.js'
 
 // ─── Google Books (livres) ────────────────────────────────────────────────────
 async function searchGoogleBooks(query) {
@@ -72,7 +73,7 @@ async function searchAniList(query) {
       author: m.staff?.nodes?.[0]?.name?.full ?? null,
       metadata: {
         release_year: m.startDate?.year ?? null,
-        description: m.description ?? null,
+        description: nettoyerTexte(m.description),
         genres: m.genres ?? null,
         status: m.status ?? null,
         volume_count: m.volumes ?? null,

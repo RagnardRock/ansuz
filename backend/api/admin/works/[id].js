@@ -1,6 +1,7 @@
 import sql from '../../../lib/db.js'
 import { requireAuth } from '../../../lib/auth.js'
 import { withCors } from '../../../lib/cors.js'
+import { nettoyerTexte } from '../../../lib/texte.js'
 
 async function requireAdmin(req, res) {
   const me = requireAuth(req)
@@ -50,7 +51,7 @@ export default withCors(async (req, res) => {
         cover_url     = ${cover_url ?? null},
         link          = ${link ?? null},
         cdn_source    = ${cdn_source ?? null},
-        description   = ${description ?? null},
+        description   = ${nettoyerTexte(description)},
         release_year  = ${release_year ?? null},
         genres        = ${genres ?? null},
         page_count    = ${page_count ?? null},

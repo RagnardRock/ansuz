@@ -221,7 +221,9 @@ async function fetchPendingCount() {
   try {
     const { data } = await adminApi.getPendingCount()
     pendingCount.value = data.count
-  } catch {}
+  } catch {
+    // Compteur non critique : on ignore l'erreur.
+  }
 }
 
 onMounted(fetchPendingCount)

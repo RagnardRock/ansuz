@@ -128,7 +128,7 @@
             </div>
 
             <!-- Synopsis -->
-            <p v-if="work.description" class="ws__synopsis">{{ work.description }}</p>
+            <p v-if="synopsis" class="ws__synopsis">{{ synopsis }}</p>
 
             <!-- Casting (film/série) -->
             <div v-if="work.main_cast?.length" class="ws__cast">
@@ -189,7 +189,7 @@
             </button>
             <span v-else-if="auth.isLoggedIn && myReview" class="ws__reviewed-badge">Avis publié ✓</span>
             <div class="ws__footer-right">
-              <p class="ws__date">Ajouté le {{ formattedDate }}</p>
+              <p v-if="formattedDate" class="ws__date">Ajouté le {{ formattedDate }}</p>
               <button v-if="auth.user?.is_admin" class="ws__btn-delete-work" @click="confirmDeleteWork">
                 Supprimer l'œuvre
               </button>
@@ -211,6 +211,7 @@
 </template>
 
 <script setup>
+import { nettoyerTexte } from '@/utils/texte.js'
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { gsap } from 'gsap'
 import { useAuthStore } from '@/stores/auth.js'
@@ -307,9 +308,15 @@ const originLabel = computed(() => {
   return map[props.work.origin] ?? props.work.origin
 })
 
-const formattedDate = computed(() =>
-  new Date(props.work.created_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
-)
+// Les vignettes (Découverte, Tendances…) n'ont pas toujours la date : on prend celle de la fiche complète.
+const createdAt = ref(props.work.created_at ?? null)
+const formattedDate = computed(() => {
+  const d = new Date(createdAt.value)
+  return createdAt.value && !isNaN(d) ? d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' }) : null
+})
+
+// Certains résumés importés (AniList) contiennent encore des balises HTML.
+const synopsis = computed(() => nettoyerTexte(props.work.description))
 
 function titleHash(str) {
   let h = 0
@@ -328,9 +335,12 @@ async function fetchReviews() {
   try {
     const { data } = await worksApi.getOne(props.work.id)
     reviews.value = data.reviews ?? []
+    if (data.created_at) createdAt.value = data.created_at
     avgRating.value = data.avg_rating
     reviewCount.value = data.review_count ?? 0
-  } catch { } finally { loadingReviews.value = false }
+  } catch {
+    // Avis non chargés : la fiche reste affichée sans eux.
+  } finally { loadingReviews.value = false }
 }
 
 async function toggleUpvote(review) {
@@ -897,7 +907,7 @@ onMounted(async () => {
   background: rgba(200,130,26,0.1); border: 1px solid rgba(200,130,26,0.25);
   border-radius: 4px; color: #8a5020;
 }
-.ws__synopsis { font-size: 0.82rem; color: #5c3a1e; line-height: 1.65; font-style: italic; }
+.ws__synopsis { white-space: pre-line; font-size: 0.82rem; color: #5c3a1e; line-height: 1.65; font-style: italic; }
 .ws__cast { font-size: 0.8rem; color: #5c3a1e; }
 .ws__meta-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: #8a6a40; font-weight: 600; margin-right: 0.35rem; }
 .ws__cast-list { color: #3d2510; }
