@@ -41,12 +41,14 @@ describe('GET /api/stats', () => {
       .mockResolvedValueOnce([{ works_count: 10 }])
       .mockResolvedValueOnce([{ reviews_count: 25 }])
       .mockResolvedValueOnce([{ users_count: 5 }])
+      .mockResolvedValueOnce([{ avg_rating: 4.2 }])
+      .mockResolvedValueOnce([{ type: 'book', count: 10 }])
 
     const req = makeReq()
     const res = makeRes()
     await statsHandler(req, res)
     expect(res._status).toBe(200)
-    expect(res._body).toMatchObject({ works_count: 10, reviews_count: 25, users_count: 5 })
+    expect(res._body).toMatchObject({ works_count: 10, reviews_count: 25, users_count: 5, avg_rating: 4.2, by_type: { book: 10 } })
   })
 
   it('retourne 405 pour une méthode non autorisée', async () => {

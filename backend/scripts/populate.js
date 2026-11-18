@@ -14,6 +14,7 @@ import { config } from 'dotenv'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { neon } from '@neondatabase/serverless'
+import { nettoyerTexte } from '../lib/texte.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 config({ path: [resolve(__dirname, '../.env.local'), resolve(__dirname, '../.env')] })
@@ -359,7 +360,7 @@ async function insertWork(w) {
     ) VALUES (
       ${w.title}, ${w.author ?? null}, ${w.type}, ${w.cover_url ?? null},
       ${w.cdn_source}, true,
-      ${w.description ?? null}, ${w.release_year ?? null}, ${w.genres ?? null},
+      ${nettoyerTexte(w.description)}, ${w.release_year ?? null}, ${w.genres ?? null},
       ${w.page_count ?? null}, ${w.publisher ?? null}, ${w.isbn ?? null},
       ${w.language ?? null}, ${w.status ?? null}, ${w.volume_count ?? null},
       ${w.origin ?? null}, ${w.duration ?? null}, ${w.main_cast ?? null},

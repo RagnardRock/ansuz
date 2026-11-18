@@ -2,6 +2,7 @@ import sql from '../../lib/db.js'
 import { requireAuth, optionalAuth } from '../../lib/auth.js'
 import { withCors } from '../../lib/cors.js'
 import { buildAffiliateUrl } from './affiliateUrl.js'
+import { nettoyerTexte } from '../../lib/texte.js'
 
 const RATE_LIMIT = 100
 const VALID_TYPES = ['book', 'manga', 'film', 'series', 'music', 'game']
@@ -152,7 +153,7 @@ export default withCors(async (req, res) => {
       VALUES (
         ${title}, ${author ?? null}, ${type}, ${cover_url ?? null}, ${finalLink ?? null}, ${me.userId},
         ${approved}, ${cdn_source ?? null},
-        ${synopsis ?? null}, ${release_year ?? null}, ${genres ?? null}, ${page_count ?? null},
+        ${nettoyerTexte(synopsis)}, ${release_year ?? null}, ${genres ?? null}, ${page_count ?? null},
         ${publisher ?? null}, ${isbn ?? null}, ${language ?? null}, ${status ?? null},
         ${volume_count ?? null}, ${origin ?? null}, ${duration ?? null}, ${main_cast ?? null},
         ${season_count ?? null}, ${platforms ?? null}, ${track_count ?? null}

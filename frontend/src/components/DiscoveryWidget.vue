@@ -39,7 +39,7 @@
         <div v-if="work.genres?.length" class="discovery__genres">
           <span v-for="g in work.genres.slice(0, 3)" :key="g" class="discovery__genre">{{ g }}</span>
         </div>
-        <p v-if="work.description" class="discovery__synopsis">{{ truncate(work.description, 180) }}</p>
+        <p v-if="work.description" class="discovery__synopsis">{{ truncate(nettoyerTexte(work.description) ?? '', 180) }}</p>
         <div class="discovery__footer">
           <span class="discovery__reviews">{{ work.review_count }} avis</span>
           <button class="discovery__cta">Voir la fiche →</button>
@@ -52,6 +52,7 @@
 </template>
 
 <script setup>
+import { nettoyerTexte } from '@/utils/texte.js'
 import { ref, computed, onMounted } from 'vue'
 import { worksApi } from '@/api/index.js'
 import { useAnimationPref } from '@/composables/useAnimationPref.js'
