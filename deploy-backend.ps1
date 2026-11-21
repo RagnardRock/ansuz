@@ -9,8 +9,9 @@ scp -r "$LOCAL_PATH\api" "${VPS}:${REMOTE_PATH}/"
 scp -r "$LOCAL_PATH\lib" "${VPS}:${REMOTE_PATH}/"
 scp "$LOCAL_PATH\server.js" "${VPS}:${REMOTE_PATH}/"
 scp "$LOCAL_PATH\package.json" "${VPS}:${REMOTE_PATH}/"
+scp "$LOCAL_PATH\package-lock.json" "${VPS}:${REMOTE_PATH}/"
 
 Write-Host "Restarting PM2..." -ForegroundColor Yellow
-ssh $VPS "cd $REMOTE_PATH && npm install --omit=dev && pm2 restart ansuz-backend"
+ssh $VPS "cd $REMOTE_PATH && npm ci --omit=dev && pm2 restart ansuz-backend"
 
 Write-Host "Done!" -ForegroundColor Green
