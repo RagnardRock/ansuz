@@ -61,6 +61,7 @@ export default withCors(async (req, res) => {
           FROM reviews rv
           WHERE rv.work_id = w.id AND rv.user_id = ${userId}
         ) ur) AS my_review,
+        (SELECT lb.status FROM library lb WHERE lb.work_id = w.id AND lb.user_id = ${userId}) AS my_status,
         COUNT(*) OVER() AS total_count
       FROM works w
       LEFT JOIN users u ON u.id = w.created_by
