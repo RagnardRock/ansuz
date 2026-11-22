@@ -41,6 +41,7 @@ export default withCors(async (req, res) => {
             SELECT 1 FROM follows WHERE follower_id = ${userId} AND following_id = r.user_id
           ) AS from_following,
           r.user_id = ${userId} AS is_own,
+          (SELECT COUNT(*)::int FROM review_replies WHERE review_id = r.id) AS reply_count,
           ROW_NUMBER() OVER (ORDER BY COUNT(uv.user_id) DESC) AS upvote_rank
         FROM reviews r
         JOIN users u ON u.id = r.user_id
@@ -50,7 +51,7 @@ export default withCors(async (req, res) => {
       )
       SELECT
         id, rating, description, created_at, updated_at,
-        user_id, username, upvote_count, user_upvoted, from_following, is_own
+        user_id, username, upvote_count, user_upvoted, from_following, is_own, reply_count
       FROM ranked
       WHERE upvote_rank <= 10 OR from_following OR is_own
       ORDER BY

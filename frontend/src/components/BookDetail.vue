@@ -169,17 +169,24 @@
                 </div>
                 <p v-if="review.description" class="ws__review-desc">{{ review.description }}</p>
                 <div class="ws__review-footer">
-                  <button class="ws__upvote" :class="{ active: review.user_upvoted }"
-                    :aria-label="`${review.user_upvoted ? 'Retirer le like' : 'Liker'} l'avis de ${review.username} (${review.upvote_count})`"
-                    :aria-pressed="review.user_upvoted"
-                    :disabled="!auth.isLoggedIn || review.user_id === auth.user?.id" @click="toggleUpvote(review)">
-                    ♥ {{ review.upvote_count }}
-                  </button>
+                  <div class="ws__review-left">
+                    <button class="ws__upvote" :class="{ active: review.user_upvoted }"
+                      :aria-label="`${review.user_upvoted ? 'Retirer le like' : 'Liker'} l'avis de ${review.username} (${review.upvote_count})`"
+                      :aria-pressed="review.user_upvoted"
+                      :disabled="!auth.isLoggedIn || review.user_id === auth.user?.id" @click="toggleUpvote(review)">
+                      ♥ {{ review.upvote_count }}
+                    </button>
+                    <button v-if="auth.isLoggedIn || review.reply_count" class="ws__repondre"
+                      :aria-expanded="!!ouverts[review.id]" @click="ouverts[review.id] = !ouverts[review.id]">
+                      {{ review.reply_count ? `Réponses · ${review.reply_count}` : 'Répondre' }}
+                    </button>
+                  </div>
                   <div v-if="isOwnReview(review) || auth.user?.is_admin" class="ws__review-actions">
                     <button v-if="isOwnReview(review)" class="ws__btn-edit" @click="openEditReview(review)">Modifier</button>
                     <button class="ws__btn-delete" @click="confirmDeleteReview(review)">Supprimer</button>
                   </div>
                 </div>
+                <ReponsesAvis v-if="ouverts[review.id]" :review="review" @count="(n) => (review.reply_count = n)" />
               </div>
               <p v-if="reviews.length === 0" class="ws__no-reviews">Soyez le premier à laisser un avis.</p>
             </template>
@@ -224,6 +231,7 @@ import { useAnimationPref } from '@/composables/useAnimationPref.js'
 import StarDisplay from './StarDisplay.vue'
 import ReviewModal from './ReviewModal.vue'
 import SuiviOeuvre from './SuiviOeuvre.vue'
+import ReponsesAvis from './ReponsesAvis.vue'
 
 const props = defineProps({ work: { type: Object, required: true } })
 const emit = defineEmits(['close', 'workDeleted'])
@@ -276,6 +284,8 @@ watch(skipNext, (val) => {
 
 const reviews = ref([])
 const myLibrary = ref(null)
+// Fils de réponses ouverts, par id d'avis
+const ouverts = ref({})
 const loadingReviews = ref(true)
 const showReviewModal = ref(false)
 const editingReview = ref(null)
@@ -949,6 +959,12 @@ onMounted(async () => {
 .ws__upvote.active { background: rgba(200,130,26,0.12); border-color: #c8821a; color: #c8821a; }
 .ws__upvote:disabled { cursor: default; opacity: 0.6; }
 .ws__review-actions { display: flex; gap: 0.6rem; }
+.ws__review-left { display: flex; align-items: center; gap: 0.4rem; }
+.ws__repondre {
+  font-size: 0.75rem; color: #8a6a40; background: transparent;
+  padding: 0.2rem 0.6rem; border: 1px solid #d4b896; border-radius: 20px; transition: all 0.2s;
+}
+.ws__repondre:hover, .ws__repondre[aria-expanded="true"] { border-color: #c8821a; color: #c8821a; }
 .ws__btn-edit { font-size: 0.72rem; color: #c8821a; background: transparent; text-decoration: underline; opacity: 0.7; transition: opacity 0.2s; }
 .ws__btn-edit:hover { opacity: 1; }
 .ws__btn-delete { font-size: 0.72rem; color: #e05050; background: transparent; text-decoration: underline; opacity: 0.7; transition: opacity 0.2s; }

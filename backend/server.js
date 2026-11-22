@@ -9,6 +9,8 @@ import workReviewsHandler from './api/works/[id]/reviews.js'
 import workLibraryHandler from './api/works/[id]/library.js'
 import reviewHandler from './api/reviews/[id].js'
 import upvoteHandler from './api/reviews/[id]/upvote.js'
+import reviewRepliesHandler from './api/reviews/[id]/replies.js'
+import replyHandler from './api/replies/[id].js'
 import registerHandler from './api/auth/register.js'
 import loginHandler from './api/auth/login.js'
 import logoutHandler from './api/auth/logout.js'
@@ -59,7 +61,9 @@ app.all('/api/works/:id/library', adapt(workLibraryHandler, { id: 'id' }))
 app.all('/api/works/:id', adapt(workHandler, { id: 'id' }))
 
 app.all('/api/reviews/:id/upvote', adapt(upvoteHandler, { id: 'id' }))
+app.all('/api/reviews/:id/replies', adapt(reviewRepliesHandler, { id: 'id' }))
 app.all('/api/reviews/:id', adapt(reviewHandler, { id: 'id' }))
+app.all('/api/replies/:id', adapt(replyHandler, { id: 'id' }))
 
 app.all('/api/admin/users/:id', adapt(adminUserByIdHandler, { id: 'id' }))
 app.all('/api/admin/users', adminUsersHandler)

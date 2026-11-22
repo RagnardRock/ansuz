@@ -40,6 +40,9 @@ export const reviewsApi = {
   update: (id, data) => api.put(`/reviews/${id}`, data),
   remove: (id) => api.delete(`/reviews/${id}`),
   upvote: (id) => api.post(`/reviews/${id}/upvote`),
+  getReplies: (id) => api.get(`/reviews/${id}/replies`),
+  addReply: (id, body) => api.post(`/reviews/${id}/replies`, { body }),
+  removeReply: (replyId) => api.delete(`/replies/${replyId}`),
 }
 
 export const userApi = {
