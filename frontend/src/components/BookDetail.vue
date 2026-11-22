@@ -107,6 +107,9 @@
             <p v-if="work.author" class="ws__author">{{ authorLabel }} : <strong>{{ work.author }}</strong></p>
           </div>
 
+          <!-- Mon suivi : statut + progression -->
+          <SuiviOeuvre v-if="auth.isLoggedIn && !loadingReviews" :work="work" :initial="myLibrary" />
+
           <!-- Métadonnées par type -->
           <div class="ws__meta">
             <!-- Faits clés (chips) -->
@@ -220,6 +223,7 @@ import { worksApi, reviewsApi } from '@/api/index.js'
 import { useAnimationPref } from '@/composables/useAnimationPref.js'
 import StarDisplay from './StarDisplay.vue'
 import ReviewModal from './ReviewModal.vue'
+import SuiviOeuvre from './SuiviOeuvre.vue'
 
 const props = defineProps({ work: { type: Object, required: true } })
 const emit = defineEmits(['close', 'workDeleted'])
@@ -271,6 +275,7 @@ watch(skipNext, (val) => {
 })
 
 const reviews = ref([])
+const myLibrary = ref(null)
 const loadingReviews = ref(true)
 const showReviewModal = ref(false)
 const editingReview = ref(null)
@@ -335,6 +340,7 @@ async function fetchReviews() {
   try {
     const { data } = await worksApi.getOne(props.work.id)
     reviews.value = data.reviews ?? []
+    myLibrary.value = data.my_library ?? null
     if (data.created_at) createdAt.value = data.created_at
     avgRating.value = data.avg_rating
     reviewCount.value = data.review_count ?? 0

@@ -6,6 +6,7 @@ import worksRandomHandler from './api/works/random.js'
 import worksFiltersHandler from './api/works/filters.js'
 import workHandler from './api/works/[id].js'
 import workReviewsHandler from './api/works/[id]/reviews.js'
+import workLibraryHandler from './api/works/[id]/library.js'
 import reviewHandler from './api/reviews/[id].js'
 import upvoteHandler from './api/reviews/[id]/upvote.js'
 import registerHandler from './api/auth/register.js'
@@ -23,6 +24,7 @@ import userByUsernameHandler from './api/users/[username].js'
 import followHandler from './api/users/[username]/follow.js'
 import followingHandler from './api/users/[username]/following.js'
 import followersHandler from './api/users/[username]/followers.js'
+import userLibraryHandler from './api/users/[username]/library.js'
 import feedHandler from './api/feed.js'
 import followingWorksHandler from './api/following-works.js'
 import coversHandler from './api/search/covers.js'
@@ -53,6 +55,7 @@ app.all('/api/works', worksHandler)
 app.all('/api/works/random', worksRandomHandler)
 app.all('/api/works/filters', worksFiltersHandler)
 app.all('/api/works/:id/reviews', adapt(workReviewsHandler, { id: 'id' }))
+app.all('/api/works/:id/library', adapt(workLibraryHandler, { id: 'id' }))
 app.all('/api/works/:id', adapt(workHandler, { id: 'id' }))
 
 app.all('/api/reviews/:id/upvote', adapt(upvoteHandler, { id: 'id' }))
@@ -69,6 +72,7 @@ app.all('/api/users/me', meHandler)
 app.all('/api/users/:username/follow', adapt(followHandler, { username: 'username' }))
 app.all('/api/users/:username/following', adapt(followingHandler, { username: 'username' }))
 app.all('/api/users/:username/followers', adapt(followersHandler, { username: 'username' }))
+app.all('/api/users/:username/library', adapt(userLibraryHandler, { username: 'username' }))
 app.all('/api/users/:username', adapt(userByUsernameHandler, { username: 'username' }))
 app.all('/api/users', usersHandler)
 

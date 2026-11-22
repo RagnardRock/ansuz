@@ -59,7 +59,14 @@ export default withCors(async (req, res) => {
         upvote_count DESC
     `
 
-    return res.status(200).json({ ...work, reviews })
+    const [myLibrary] = userId
+      ? await sql`
+          SELECT status, progress, started_at::text AS started_at, finished_at::text AS finished_at
+          FROM library WHERE user_id = ${userId} AND work_id = ${id}
+        `
+      : [null]
+
+    return res.status(200).json({ ...work, reviews, my_library: myLibrary ?? null })
   }
 
   // DELETE /api/works/:id — réservé aux administrateurs

@@ -98,3 +98,25 @@ CREATE TABLE login_attempts (
   ip           TEXT        NOT NULL,
   attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- ─── Suivi : statut et progression de chaque membre sur une œuvre ───
+-- status : planned (à voir/lire), in_progress (en cours), completed (fini), dropped (abandonné)
+-- progress : page (livre), tome (manga), épisode (série)
+CREATE TABLE library (
+  user_id     UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  work_id     UUID        NOT NULL REFERENCES works(id) ON DELETE CASCADE,
+  status      TEXT        NOT NULL CHECK (status IN ('planned', 'in_progress', 'completed', 'dropped')),
+  progress    INTEGER     CHECK (progress >= 0),
+  started_at  DATE,
+  finished_at DATE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, work_id)
+);
+
+CREATE INDEX library_work_idx ON library (work_id);
+CREATE INDEX library_user_status_idx ON library (user_id, status, updated_at DESC);
+
+CREATE TRIGGER library_updated_at
+  BEFORE UPDATE ON library
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();

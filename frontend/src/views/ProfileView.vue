@@ -84,6 +84,13 @@
         </button>
         <button
           class="profile-tab"
+          :class="{ 'profile-tab--active': activeTab === 'library' }"
+          @click="activeTab = 'library'"
+        >
+          Bibliothèque
+        </button>
+        <button
+          class="profile-tab"
           :class="{ 'profile-tab--active': activeTab === 'following' }"
           @click="setTab('following')"
         >
@@ -151,6 +158,11 @@
             <button class="rpag-btn" :disabled="reviewPage === reviewTotalPages" @click="reviewPage++">›</button>
           </div>
         </template>
+      </div>
+
+      <!-- Contenu onglet Bibliothèque -->
+      <div v-else-if="activeTab === 'library'" class="tab-content">
+        <BibliothequeProfil :username="profile.username" @open="openWorkById" />
       </div>
 
       <!-- Contenu onglet Abonnements -->
@@ -377,10 +389,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.js'
 import { useWorksStore } from '@/stores/works.js'
-import { userApi } from '@/api/index.js'
+import { userApi, worksApi } from '@/api/index.js'
 import { useAnimationPref } from '@/composables/useAnimationPref.js'
 import StarDisplay from '@/components/StarDisplay.vue'
 import BookDetail from '@/components/BookDetail.vue'
+import BibliothequeProfil from '@/components/BibliothequeProfil.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -520,6 +533,18 @@ async function setTab(tab) {
     } finally {
       followListLoading.value = false
     }
+  }
+}
+
+// Ouvre une œuvre de la bibliothèque : on charge la fiche complète (elle n'est pas forcément dans le store).
+async function openWorkById(id) {
+  const work = worksStore.works.find((w) => w.id === id)
+  if (work) { selectedWork.value = work; return }
+  try {
+    const { data } = await worksApi.getOne(id)
+    selectedWork.value = data
+  } catch {
+    // Œuvre introuvable : rien à ouvrir.
   }
 }
 

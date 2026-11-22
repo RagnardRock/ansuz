@@ -31,7 +31,16 @@ export default withCors(async (req, res) => {
     ORDER BY u.created_at DESC
   `
 
-  const payload = { account, reviews, upvotes, exported_at: new Date().toISOString() }
+  const library = await sql`
+    SELECT l.status, l.progress, l.started_at::text AS started_at, l.finished_at::text AS finished_at,
+           l.updated_at, w.title AS work_title, w.type AS work_type
+    FROM library l
+    JOIN works w ON w.id = l.work_id
+    WHERE l.user_id = ${me.userId}
+    ORDER BY l.updated_at DESC
+  `
+
+  const payload = { account, reviews, upvotes, library, exported_at: new Date().toISOString() }
 
   res.setHeader('Content-Disposition', `attachment; filename="ansuz-export-${account.username}.json"`)
   res.setHeader('Content-Type', 'application/json')

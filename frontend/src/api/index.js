@@ -31,6 +31,9 @@ export const worksApi = {
   create: (data) => api.post('/works', data),
   delete: (id) => api.delete(`/works/${id}`),
   addReview: (workId, data) => api.post(`/works/${workId}/reviews`, data),
+  getLibrary: (workId) => api.get(`/works/${workId}/library`),
+  setLibrary: (workId, data) => api.put(`/works/${workId}/library`, data),
+  removeLibrary: (workId) => api.delete(`/works/${workId}/library`),
 }
 
 export const reviewsApi = {
@@ -49,6 +52,7 @@ export const userApi = {
   getFollowingWorks: () => api.get('/following-works'),
   getFollowing: (username) => api.get(`/users/${username}/following`),
   getFollowers: (username) => api.get(`/users/${username}/followers`),
+  getLibrary: (username, status = null) => api.get(`/users/${username}/library`, { params: status ? { status } : {} }),
 }
 
 export const feedApi = {
