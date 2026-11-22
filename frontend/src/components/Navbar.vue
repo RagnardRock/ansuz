@@ -75,7 +75,7 @@
           </svg>
           <span v-if="pendingCount > 0" class="navbar__admin-dot" />
         </router-link>
-        <button class="navbar__add" aria-label="Ajouter une œuvre" @click="$emit('create')">
+        <button class="navbar__add" aria-label="Ajouter une œuvre" title="Ajouter une œuvre (Ctrl+K)" aria-keyshortcuts="Control+K" @click="$emit('create')">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
@@ -205,11 +205,11 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, watch } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth.js'
 import { userApi, adminApi } from '@/api/index.js'
 
-defineEmits(['create'])
+const emit = defineEmits(['create'])
 const auth = useAuthStore()
 
 const menuOpen = ref(false)
@@ -227,6 +227,16 @@ async function fetchPendingCount() {
 }
 
 onMounted(fetchPendingCount)
+
+// Ctrl+K (ou Cmd+K) : ajout rapide depuis n'importe où
+function raccourciAjout(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' && auth.isLoggedIn) {
+    e.preventDefault()
+    emit('create')
+  }
+}
+onMounted(() => document.addEventListener('keydown', raccourciAjout))
+onUnmounted(() => document.removeEventListener('keydown', raccourciAjout))
 watch(() => auth.user, fetchPendingCount)
 const searchQuery = ref('')
 const searchResults = ref([])

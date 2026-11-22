@@ -6,51 +6,9 @@
         <button class="modal-close" aria-label="Fermer" @click="$emit('close')">✕</button>
       </div>
 
-      <!-- ── Phase 1 : Recherche ── -->
-      <div v-if="phase === 'search'" class="modal-body">
-        <div class="field">
-          <label for="search-title">Titre</label>
-          <input
-            id="search-title"
-            v-model="searchText"
-            type="text"
-            placeholder="Dune, Vinland Saga, Interstellar…"
-            autocomplete="off"
-            autofocus
-          />
-        </div>
-
-        <div v-if="searchText.trim()" class="search-results">
-          <template v-if="matches.length > 0">
-            <p class="search-results__label">Œuvres existantes</p>
-            <button v-for="work in matches" :key="work.id" class="work-match" @click="selectExisting(work)">
-              <div class="work-match__cover">
-                <img v-if="work.cover_url" :src="work.cover_url" :alt="work.title" />
-                <div v-else class="work-match__cover-placeholder" :style="{ background: placeholderFor(work) }" />
-              </div>
-              <div class="work-match__info">
-                <span class="work-match__title">{{ work.title }}</span>
-                <span class="work-match__meta">
-                  <span class="work-match__type">{{ TYPE_NAMES[work.type] ?? work.type }}</span>
-                  <span v-if="work.avg_rating">· ★ {{ work.avg_rating }}</span>
-                  <span v-if="work.review_count > 0">· {{ work.review_count }} avis</span>
-                </span>
-                <span v-if="hasMyReview(work)" class="work-match__reviewed">Déjà noté</span>
-              </div>
-              <svg class="work-match__arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9,18 15,12 9,6" />
-              </svg>
-            </button>
-          </template>
-          <button class="create-new-btn" @click="goToCreate">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Créer <em>« {{ searchText.trim() }} »</em> comme nouvelle œuvre
-          </button>
-        </div>
-        <p v-else class="search-hint">Commence par taper un titre pour voir si l'œuvre existe déjà.</p>
-      </div>
+      <!-- ── Phase 1 : ajout rapide (recherche unique, statut, note) ── -->
+      <AjoutRapide v-if="phase === 'search'" :initial-type="initialType" :initial-text="searchText"
+        @open-work="selectExisting" @full="goToCreate" @saved="(w) => emit('created', w)" />
 
       <!-- ── Phase 2 : Création ── -->
       <form v-else class="modal-form" @submit.prevent="submit">
@@ -280,6 +238,7 @@ import { ref, reactive, computed, watch } from 'vue'
 import { useWorksStore } from '@/stores/works.js'
 import { useAuthStore } from '@/stores/auth.js'
 import ImageSearchCarousel from './ImageSearchCarousel.vue'
+import AjoutRapide from './AjoutRapide.vue'
 
 const props = defineProps({
   initialType: { type: String, default: null },
@@ -296,7 +255,6 @@ const TYPES = [
   { value: 'music',  label: 'Musique' },
   { value: 'game',   label: 'Jeu' },
 ]
-const TYPE_NAMES = Object.fromEntries(TYPES.map((t) => [t.value, t.label]))
 
 const CDN_LABELS = {
   googlebooks: 'Google Books',
@@ -369,26 +327,8 @@ const authorLabel = computed(() => AUTHOR_META[form.type]?.label ?? 'Auteur')
 const authorPlaceholder = computed(() => AUTHOR_META[form.type]?.placeholder ?? '')
 const coverSearchQuery = computed(() => [form.title, form.author].filter(Boolean).join(' '))
 
-const matches = computed(() => {
-  const q = searchText.value.trim().toLowerCase()
-  if (!q) return []
-  return worksStore.works.filter((w) => w.title.toLowerCase().includes(q)).slice(0, 6)
-})
-
-function hasMyReview(work) { return work.my_review != null }
-
-function titleHash(str) {
-  let h = 0
-  for (let i = 0; i < str.length; i++) h = str.charCodeAt(i) + ((h << 5) - h)
-  return Math.abs(h)
-}
-function placeholderFor(work) {
-  const hue = titleHash(work.title) % 360
-  return `linear-gradient(145deg, hsl(${hue}, 40%, 22%), hsl(${hue}, 35%, 14%))`
-}
-
 function selectExisting(work) { emit('open-work', work); emit('close') }
-function goToCreate() { form.title = searchText.value.trim(); phase.value = 'create' }
+function goToCreate(texte = '') { searchText.value = texte; form.title = texte; phase.value = 'create' }
 
 watch(() => form.type, () => { form.author = ''; form.cdn_source = null })
 watch(() => form.cover_url, (val) => { if (!val) form.cdn_source = null })
@@ -514,42 +454,7 @@ async function submit() {
 }
 .modal-close:hover { background: var(--color-amber); color: #0d0600; }
 
-/* Phase recherche */
-.modal-body {
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.2rem;
-}
-.search-hint { font-size: 0.85rem; color: var(--color-text-muted); font-style: italic; text-align: center; padding: 1rem 0; }
-.search-results { display: flex; flex-direction: column; gap: 0.5rem; }
-.search-results__label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); margin-bottom: 0.2rem; }
 
-.work-match {
-  display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.8rem;
-  background: rgba(255,255,255,0.03); border: 1px solid var(--color-border);
-  border-radius: 8px; cursor: pointer; text-align: left;
-  transition: border-color var(--transition), background var(--transition); width: 100%;
-}
-.work-match:hover { border-color: var(--color-amber); background: rgba(200,130,26,0.06); }
-.work-match__cover { width: 36px; height: 52px; flex-shrink: 0; border-radius: 3px; overflow: hidden; }
-.work-match__cover img { width: 100%; height: 100%; object-fit: cover; }
-.work-match__cover-placeholder { width: 100%; height: 100%; }
-.work-match__info { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
-.work-match__title { font-family: var(--font-serif); font-size: 0.92rem; color: var(--color-text); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.work-match__meta { font-size: 0.75rem; color: var(--color-text-muted); }
-.work-match__type { color: var(--color-amber); font-weight: 500; }
-.work-match__reviewed { font-size: 0.7rem; color: var(--color-amber); background: rgba(200,130,26,0.12); padding: 0.1rem 0.45rem; border-radius: 4px; align-self: flex-start; }
-.work-match__arrow { color: var(--color-text-muted); flex-shrink: 0; }
-
-.create-new-btn {
-  display: flex; align-items: center; gap: 0.6rem; width: 100%;
-  padding: 0.7rem 0.8rem; border: 1px dashed var(--color-border); border-radius: 8px;
-  color: var(--color-text-muted); font-size: 0.88rem; cursor: pointer;
-  transition: border-color var(--transition), color var(--transition); text-align: left; margin-top: 0.25rem;
-}
-.create-new-btn:hover { border-color: var(--color-amber); color: var(--color-amber); }
-.create-new-btn em { font-style: normal; color: var(--color-text); }
 
 /* Phase création */
 .modal-form { display: flex; flex-direction: column; gap: 1.2rem; padding: 1.5rem; }
